@@ -11,6 +11,10 @@
   animation: gradientShift 15s ease infinite;
 }
 
+.header {
+  height: 20px;
+}
+
 .intro {
   max-width: 720px;
   text-align: center;
