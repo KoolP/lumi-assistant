@@ -76,6 +76,15 @@
   color: white;
 }
 
+.textarea::placeholder {
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.textarea:focus::placeholder {
+  opacity: 0;
+}
+
 .button {
   padding: 1rem 1.5rem;
   width: 100%;

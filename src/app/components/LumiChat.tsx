@@ -16,6 +16,7 @@ export default function LumiChat() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [hasSentMessage, setHasSentMessage] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -130,8 +131,12 @@ export default function LumiChat() {
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           placeholder={
-            hasSentMessage
+            isFocused
+              ? '' // Hide when focused
+              : hasSentMessage
               ? 'Ask more...'
               : 'Type your question about treatments, pricing, or anything else...'
           }
