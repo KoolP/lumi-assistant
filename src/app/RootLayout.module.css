@@ -1,6 +1,7 @@
 .layout {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
   padding: 2rem 1rem;
   min-height: 100vh;
@@ -25,10 +26,11 @@
 }
 
 .intro p {
-  font-size: 1.125rem;
+  font-size: 1.4rem;
   color: #00ffe0;
   margin-top: 0.75rem;
   line-height: 1.1;
+  font-weight: bold;
 }
 
 @keyframes gradientShift {

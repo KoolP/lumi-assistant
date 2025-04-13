@@ -15,6 +15,7 @@ export default function LumiChat() {
   const [threadId, setThreadId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const [hasSentMessage, setHasSentMessage] = useState(false);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -41,6 +42,7 @@ export default function LumiChat() {
           { role: 'assistant', content: data.reply },
         ]);
         setThreadId(data.threadId);
+        setHasSentMessage(true);
       } else {
         setMessages(prev => [
           ...prev,
@@ -128,7 +130,11 @@ export default function LumiChat() {
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder='Type your question about treatments, pricing, or anything else...'
+          placeholder={
+            hasSentMessage
+              ? 'Ask more...'
+              : 'Type your question about treatments, pricing, or anything else...'
+          }
           rows={3}
         />
       )}
@@ -138,7 +144,7 @@ export default function LumiChat() {
         disabled={loading || !input.trim()}
         className={`${styles.button} ${loading ? styles.loading : ''}`}
       >
-        {loading ? 'Lumi is thinking...' : 'Send'}
+        {loading ? 'thinking...' : 'Send'}
       </button>
     </div>
   );

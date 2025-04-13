@@ -19,7 +19,7 @@ export default function RootLayout({
         <main className={styles.layout}>
           <div className={styles.intro}>
             <p>
-              Hi, I am Lumi <br /> Assistant from Face Institute
+              This is Lumi <br /> AI Assistant from Face Institute
             </p>
           </div>
           {children}
