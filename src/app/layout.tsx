@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import styles from './RootLayout.module.css';
 import Footer from './components/LumiFooter';
+import Image from 'next/image';
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -17,10 +18,14 @@ export default function RootLayout({
     <html lang='en'>
       <body>
         <main className={styles.layout}>
+          <Image
+            src='/white-logo.png'
+            alt='Face Institute Logo'
+            width={215}
+            height={69}
+          />
           <div className={styles.intro}>
-            <p>
-              This is Lumi <br /> AI Assistant from Face Institute
-            </p>
+            <p>AI Assistant</p>
           </div>
           {children}
           <Footer />

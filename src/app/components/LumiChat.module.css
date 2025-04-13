@@ -117,6 +117,7 @@
   background: linear-gradient(270deg, #00ffe0, #191715, #00ffe0);
   background-size: 400% 400%;
   color: white;
+  font-size: 0.8rem;
   animation: glowFlow 3s ease infinite;
   border: none;
   /* font-weight: bold; */

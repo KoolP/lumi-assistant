@@ -144,7 +144,7 @@ export default function LumiChat() {
         disabled={loading || !input.trim()}
         className={`${styles.button} ${loading ? styles.loading : ''}`}
       >
-        {loading ? 'thinking...' : 'Send'}
+        {loading ? 'generating...' : 'Send'}
       </button>
     </div>
   );
