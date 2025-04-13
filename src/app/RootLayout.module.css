@@ -1,12 +1,11 @@
 .layout {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* justify-content: space-between; */
   align-items: center;
   padding: 2rem 1rem;
   min-height: 100vh;
   box-sizing: border-box;
-
   background: linear-gradient(-45deg, #191715, #000, #191715, #2b2b2b);
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
@@ -30,6 +29,7 @@
   color: white;
   margin-top: 20px;
   line-height: 1.1;
+  margin-bottom: 100%;
   /* font-weight: bold; */
 }
 
