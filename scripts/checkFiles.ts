@@ -16,7 +16,7 @@ if (!vectorStoreId) {
 
 async function checkFiles() {
   try {
-    const files = await openai.vectorStores.files.list(vectorStoreId);
+    const files = await openai.vectorStores.files.list(vectorStoreId!); // <- FIXED
 
     if (!files.data.length) {
       console.log('⚠️ No files found in the vector store.');
@@ -26,7 +26,7 @@ async function checkFiles() {
     console.log(`📦 Vector store contains ${files.data.length} file(s):`);
 
     for (const file of files.data) {
-      const fileInfo = await openai.files.retrieve(file.id); // 👈 get full file metadata
+      const fileInfo = await openai.files.retrieve(file.id);
       console.log(
         `- File: ${fileInfo.filename} (${fileInfo.id}) – Status: ${
           fileInfo.status
