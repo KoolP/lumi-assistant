@@ -16,7 +16,6 @@ export default function LumiChat() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [hasSentMessage, setHasSentMessage] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
   const [localPlaceholder, setLocalPlaceholder] = useState<string>(
     'Type your question about treatments, pricing, or anything else...'
   );
@@ -28,6 +27,9 @@ export default function LumiChat() {
     setMessages(prev => [...prev, newMessage]);
     setInput('');
     setLoading(true);
+
+    // Add the assistant's message placeholder immediately
+    setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
     try {
       const res = await fetch('/api/chat', {
@@ -43,8 +45,6 @@ export default function LumiChat() {
       let assistantReply = '';
 
       if (reader) {
-        setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
-
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
@@ -55,14 +55,12 @@ export default function LumiChat() {
           setMessages(prev => {
             const updated = [...prev];
             const lastIndex = updated.length - 1;
-
-            if (updated[lastIndex].role === 'assistant') {
+            if (updated[lastIndex]?.role === 'assistant') {
               updated[lastIndex] = {
                 ...updated[lastIndex],
                 content: assistantReply,
               };
             }
-
             return updated;
           });
         }
@@ -149,19 +147,30 @@ export default function LumiChat() {
                 >
                   {cleanedContent}
                 </ReactMarkdown>
+                {loading &&
+                  index === messages.length - 1 &&
+                  msg.role === 'assistant' &&
+                  msg.content === '' && (
+                    <div className={styles.typing}>
+                      <span className={styles.dot}>.</span>
+                      <span className={styles.dot}>.</span>
+                      <span className={styles.dot}>.</span>
+                    </div>
+                  )}
+                {loading &&
+                  index === messages.length - 1 &&
+                  msg.role === 'assistant' &&
+                  msg.content !== '' && (
+                    <div className={styles.typing}>
+                      <span className={styles.dot}>.</span>
+                      <span className={styles.dot}>.</span>
+                      <span className={styles.dot}>.</span>
+                    </div>
+                  )}
               </div>
             </div>
           );
         })}
-
-        {loading && (
-          <div className={styles.typing}>
-            {/* Assistant is typing */}
-            <span className={styles.dot}>.</span>
-            <span className={styles.dot}>.</span>
-            <span className={styles.dot}>.</span>
-          </div>
-        )}
 
         <div ref={messagesEndRef} />
       </div>
@@ -173,11 +182,9 @@ export default function LumiChat() {
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={() => {
-            setIsFocused(true);
-            setLocalPlaceholder(''); // Clear placeholder on focus
+            setLocalPlaceholder('');
           }}
           onBlur={() => {
-            setIsFocused(false);
             if (hasSentMessage && !input.trim()) {
               setLocalPlaceholder('Ask more...');
             } else if (!hasSentMessage && !input.trim()) {
@@ -185,7 +192,7 @@ export default function LumiChat() {
                 'Type your question about treatments, pricing, or anything else...'
               );
             } else if (input.trim()) {
-              setLocalPlaceholder(''); // Keep empty if user has typed
+              setLocalPlaceholder('');
             }
           }}
           placeholder={localPlaceholder}
