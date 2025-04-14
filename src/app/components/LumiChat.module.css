@@ -16,10 +16,11 @@
 }
 
 .messages {
-  max-height: 500px;
+  /* max-height: 500px; */
   overflow-y: auto;
   padding-bottom: 1rem;
   flex-grow: 1;
+  min-height: 0;
 }
 
 .message {
