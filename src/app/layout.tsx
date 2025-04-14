@@ -18,16 +18,17 @@ export default function RootLayout({
     <html lang='en'>
       <body>
         <main className={styles.layout}>
-          <div className={styles.header} />
-          <Image
-            src='/white-logo.png'
-            alt='Face Institute Logo'
-            width={108}
-            height={35}
-            className={styles.logo}
-          />
-          <div className={styles.intro}>
-            <p>AI Assistant</p>
+          <div className={styles.header}>
+            <Image
+              src='/white-logo.png'
+              alt='Face Institute Logo'
+              width={108}
+              height={35}
+              className={styles.logo}
+            />
+            <div className={styles.intro}>
+              <p>AI Assistant</p>
+            </div>
           </div>
           {children}
           <Footer />
