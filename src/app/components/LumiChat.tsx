@@ -109,12 +109,12 @@ export default function LumiChat() {
   }, [messages]);
 
   useEffect(() => {
-    if (hasSentMessage) {
+    if (messages.length > 1) {
       setLocalPlaceholder('Ask more...');
     } else {
       setLocalPlaceholder('Type your question...');
     }
-  }, [hasSentMessage]);
+  }, [messages.length]);
 
   return (
     <div className={styles.chatContainer}>
@@ -206,12 +206,12 @@ export default function LumiChat() {
               setLocalPlaceholder('');
             }}
             onBlur={() => {
-              if (hasSentMessage && !input.trim()) {
-                setLocalPlaceholder('Ask more...');
-              } else if (!hasSentMessage && !input.trim()) {
-                setLocalPlaceholder('Type your question...');
-              } else if (input.trim()) {
-                setLocalPlaceholder('');
+              if (hasSentMessage) {
+                setLocalPlaceholder(input.trim() ? '' : 'Ask more...');
+              } else {
+                setLocalPlaceholder(
+                  input.trim() ? '' : 'Type your question...'
+                );
               }
             }}
             placeholder={localPlaceholder}
