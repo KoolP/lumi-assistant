@@ -17,6 +17,9 @@ export default function LumiChat() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [hasSentMessage, setHasSentMessage] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
+  const [localPlaceholder, setLocalPlaceholder] = useState<string>(
+    'Type your question about treatments, pricing, or anything else...'
+  );
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -35,23 +38,42 @@ export default function LumiChat() {
         },
       });
 
-      const data = await res.json();
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantReply = '';
 
-      if ('reply' in data) {
-        setMessages(prev => [
-          ...prev,
-          { role: 'assistant', content: data.reply },
-        ]);
-        setThreadId(data.threadId);
+      if (reader) {
+        setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          assistantReply += chunk;
+
+          setMessages(prev => {
+            const updated = [...prev];
+            const lastIndex = updated.length - 1;
+
+            if (updated[lastIndex].role === 'assistant') {
+              updated[lastIndex] = {
+                ...updated[lastIndex],
+                content: assistantReply,
+              };
+            }
+
+            return updated;
+          });
+        }
+
+        // Update thread ID if received in header
+        const newThreadId = res.headers.get('x-thread-id');
+        if (newThreadId) setThreadId(newThreadId);
+
         setHasSentMessage(true);
       } else {
-        setMessages(prev => [
-          ...prev,
-          {
-            role: 'assistant',
-            content: 'Something went wrong. Please try again.',
-          },
-        ]);
+        throw new Error('Streaming failed: No readable stream.');
       }
     } catch (err) {
       console.error(err);
@@ -59,7 +81,7 @@ export default function LumiChat() {
         ...prev,
         {
           role: 'assistant',
-          content: 'An error occurred. Please try again later.',
+          content: '⚠️ An error occurred. Please try again later.',
         },
       ]);
     } finally {
@@ -78,13 +100,23 @@ export default function LumiChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    if (hasSentMessage) {
+      setLocalPlaceholder('Ask more...');
+    } else {
+      setLocalPlaceholder(
+        'Type your question about treatments, pricing, or anything else...'
+      );
+    }
+  }, [hasSentMessage]);
+
   return (
     <div className={styles.chatContainer}>
       <div className={styles.messages}>
         {messages.map((msg, index) => {
           const cleanedContent = msg.content
             .replace(/【[^】]+】/g, '')
-            .replace(/(https?:\/\/[^\s]+)/g, url => `[${url}](${url})`); // ✅ removes
+            .replace(/(https?:\/\/[^\s]+)/g, url => `[${url}](${url})`);
 
           return (
             <div
@@ -122,6 +154,15 @@ export default function LumiChat() {
           );
         })}
 
+        {loading && (
+          <div className={styles.typing}>
+            {/* Assistant is typing */}
+            <span className={styles.dot}>.</span>
+            <span className={styles.dot}>.</span>
+            <span className={styles.dot}>.</span>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -131,15 +172,23 @@ export default function LumiChat() {
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          placeholder={
-            isFocused
-              ? '' // Hide when focused
-              : hasSentMessage
-              ? 'Ask more...'
-              : 'Type your question about treatments, pricing, or anything else...'
-          }
+          onFocus={() => {
+            setIsFocused(true);
+            setLocalPlaceholder(''); // Clear placeholder on focus
+          }}
+          onBlur={() => {
+            setIsFocused(false);
+            if (hasSentMessage && !input.trim()) {
+              setLocalPlaceholder('Ask more...');
+            } else if (!hasSentMessage && !input.trim()) {
+              setLocalPlaceholder(
+                'Type your question about treatments, pricing, or anything else...'
+              );
+            } else if (input.trim()) {
+              setLocalPlaceholder(''); // Keep empty if user has typed
+            }
+          }}
+          placeholder={localPlaceholder}
           rows={3}
         />
       )}

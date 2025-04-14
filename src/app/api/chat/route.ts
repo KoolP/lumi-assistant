@@ -1,89 +1,69 @@
-// src/app/api/chat/route.ts
-import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { type NextRequest } from 'next/server';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+export const runtime = 'edge'; // Enables streaming on Vercel or other edge environments
 
-export async function POST(req: Request) {
-  try {
-    const { message, threadId } = await req.json();
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
-    // 1. Create a new thread if none exists
-    const thread = threadId
-      ? { id: threadId }
-      : await openai.beta.threads.create();
+export async function POST(req: NextRequest) {
+  const { message, threadId } = await req.json();
+  const encoder = new TextEncoder();
 
-    // 2. Add the user message to the thread
-    await openai.beta.threads.messages.create(thread.id, {
-      role: 'user',
-      content: message,
-    });
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        // 1. Create a thread if none exists
+        const thread = threadId
+          ? { id: threadId }
+          : await openai.beta.threads.create();
 
-    // 3. Create a run (Assistant will respond)
-    const run = await openai.beta.threads.runs.create(thread.id, {
-      assistant_id: process.env.OPENAI_ASSISTANT_ID!,
-    });
+        // 2. Add user message to the thread
+        await openai.beta.threads.messages.create(thread.id, {
+          role: 'user',
+          content: message,
+        });
 
-    // 4. Poll until the run completes or fails
-    let status = run.status;
-    let completedRun = run;
+        // 3. Create and stream the assistant run
+        const runStream = await openai.beta.threads.runs.stream(thread.id, {
+          assistant_id: process.env.OPENAI_ASSISTANT_ID!,
+        });
 
-    while (status !== 'completed' && status !== 'failed') {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      completedRun = await openai.beta.threads.runs.retrieve(thread.id, run.id);
-      console.log('[DEBUG] Completed run object:', completedRun);
-      status = completedRun.status;
-    }
+        // 4. Process the streamed events
+        for await (const event of runStream) {
+          if (
+            event.event === 'thread.message.delta' &&
+            Array.isArray(event.data?.delta?.content)
+          ) {
+            for (const block of event.data.delta.content) {
+              if (
+                block.type === 'text' &&
+                'text' in block &&
+                typeof block.text?.value === 'string'
+              ) {
+                controller.enqueue(encoder.encode(block.text.value));
+              }
+            }
+          }
 
-    // 5. Get and log run steps (for debugging tool usage)
-    const steps = await openai.beta.threads.runs.steps.list(thread.id, run.id);
-    console.log('[DEBUG] Run steps:', steps.data);
+          if (event.event === 'thread.run.completed') {
+            controller.close();
+          }
+        }
+      } catch (error) {
+        console.error('[Streaming Error]', error);
+        controller.enqueue(
+          encoder.encode('⚠️ Assistant failed to respond. Please try again.\n')
+        );
+        controller.close();
+      }
+    },
+  });
 
-    // 6. Get assistant message
-    const messages = await openai.beta.threads.messages.list(thread.id);
-    const assistantMessage = messages.data.find(m => m.role === 'assistant');
-
-    if (!assistantMessage) {
-      console.warn('[WARN] No assistant message found:', messages.data);
-      return NextResponse.json({
-        reply: 'No assistant reply found.',
-        threadId: thread.id,
-      });
-    }
-
-    const textBlocks = assistantMessage.content?.filter(
-      c => c.type === 'text'
-    ) as Array<{ type: 'text'; text: { value: string } }>;
-
-    const replyText =
-      textBlocks
-        ?.map(block => block.text.value)
-        .join('\n\n')
-        .trim() || null;
-
-    console.log('[DEBUG] Assistant content:', assistantMessage.content);
-    console.log('[DEBUG] Extracted reply text:', replyText);
-    console.log('[DEBUG] All thread messages:', messages.data);
-    console.log('[DEBUG] Number of text blocks:', textBlocks.length);
-
-    const cleanedReply =
-      replyText
-        ?.replace(/\r\n/g, '\n') // normalize Windows line breaks
-        .trim() ?? 'No textual response.';
-
-    console.log('[DEBUG] Cleaned reply text:', cleanedReply);
-
-    console.log('[DEBUG] Cleaned reply text:', cleanedReply);
-
-    return NextResponse.json({
-      reply: cleanedReply ?? 'No textual response.',
-      threadId: thread.id,
-    });
-  } catch (err) {
-    console.error('Error in POST /api/chat:', err);
-    return NextResponse.json(
-      { error: 'Failed to process message' },
-      { status: 500 }
-    );
-  }
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    },
+  });
 }
