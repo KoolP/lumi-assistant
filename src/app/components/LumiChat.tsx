@@ -17,8 +17,18 @@ export default function LumiChat() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const [hasSentMessage, setHasSentMessage] = useState(false);
   const [localPlaceholder, setLocalPlaceholder] = useState<string>(
-    'Type your question about treatments, pricing, or anything else...'
+    'Type your question...'
   );
+
+  const exampleQuestions = [
+    { emoji: '✨', question: 'Why is Face Institute unique?' },
+    { emoji: '👨‍⚕️', question: 'Who are the doctors?' },
+    { emoji: '❓', question: 'What is a deep plane facelift?' },
+  ];
+
+  const handleExampleQuestionClick = (question: string) => {
+    setInput(question);
+  };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -102,9 +112,7 @@ export default function LumiChat() {
     if (hasSentMessage) {
       setLocalPlaceholder('Ask more...');
     } else {
-      setLocalPlaceholder(
-        'Type your question about treatments, pricing, or anything else...'
-      );
+      setLocalPlaceholder('Type your question...');
     }
   }, [hasSentMessage]);
 
@@ -175,29 +183,41 @@ export default function LumiChat() {
         <div ref={messagesEndRef} />
       </div>
 
+      <div className={styles.exampleQuestions}>
+        {exampleQuestions.map((item, index) => (
+          <button
+            key={index}
+            className={styles.exampleQuestionButton}
+            onClick={() => handleExampleQuestionClick(item.question)}
+          >
+            {item.emoji} {item.question}
+          </button>
+        ))}
+      </div>
+
       {!loading && (
-        <textarea
-          className={styles.textarea}
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onFocus={() => {
-            setLocalPlaceholder('');
-          }}
-          onBlur={() => {
-            if (hasSentMessage && !input.trim()) {
-              setLocalPlaceholder('Ask more...');
-            } else if (!hasSentMessage && !input.trim()) {
-              setLocalPlaceholder(
-                'Type your question about treatments, pricing, or anything else...'
-              );
-            } else if (input.trim()) {
+        <>
+          <textarea
+            className={styles.textarea}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={() => {
               setLocalPlaceholder('');
-            }
-          }}
-          placeholder={localPlaceholder}
-          rows={3}
-        />
+            }}
+            onBlur={() => {
+              if (hasSentMessage && !input.trim()) {
+                setLocalPlaceholder('Ask more...');
+              } else if (!hasSentMessage && !input.trim()) {
+                setLocalPlaceholder('Type your question...');
+              } else if (input.trim()) {
+                setLocalPlaceholder('');
+              }
+            }}
+            placeholder={localPlaceholder}
+            rows={2}
+          />
+        </>
       )}
 
       <button

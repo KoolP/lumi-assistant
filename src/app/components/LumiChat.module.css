@@ -75,7 +75,7 @@
   /* background-color: black; */
   background-color: #262626;
   outline: none;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .textarea::placeholder {
@@ -87,13 +87,29 @@
   transition: opacity 0.2s ease;
 }
 
-/* .textarea:focus::placeholder {
-  opacity: 0;
-} */
+.exampleQuestions {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap; /* Allows buttons to wrap to the next line on smaller screens */
+}
 
-/* .textarea:not(:placeholder-shown)::placeholder {
-  opacity: 0;
-} */
+.exampleQuestionButton {
+  background-color: transparent;
+  color: inherit;
+  /* color: #333; */
+  border: none;
+  padding: 0;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+}
+
+.exampleQuestionButton:hover {
+  color: white;
+}
 
 .button {
   padding: 1rem 1.5rem;
