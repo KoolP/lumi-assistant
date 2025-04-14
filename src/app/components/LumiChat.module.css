@@ -97,18 +97,19 @@
 }
 
 .exampleQuestionButton {
-  background-color: transparent;
-  color: inherit;
-  /* color: #333; */
-  border: none;
-  padding: 0;
+  background-color: transparent; /* Transparent background */
+  color: inherit; /* Inherit text color from parent */
+  border: 1px solid #555; /* Add a 1px solid dark grey border */
+  border-radius: 14px; /* Add rounded corners */
+  padding: 0.25rem 0.5rem; /* Add some minimal padding */
   font-size: 0.8rem;
   cursor: pointer;
-  transition: color 0.2s ease-in-out;
+  transition: border-color 0.2s ease-in-out; /* Optional: smooth border color transition on hover */
 }
 
 .exampleQuestionButton:hover {
-  color: white;
+  border-color: #00ffe0; /* Example: Change border color on hover for visual feedback */
+  color: #00ffe0; /* Also change text color on hover for better visibility */
 }
 
 .button {
