@@ -4,7 +4,7 @@
   /* justify-content: space-between; */
   align-items: center;
   padding: 2rem 1rem;
-  min-height: 100vh;
+  height: 100vh;
   box-sizing: border-box;
   background: linear-gradient(-45deg, #191715, #000, #191715, #2b2b2b);
   background-size: 400% 400%;
@@ -12,7 +12,7 @@
 }
 
 .header {
-  margin-top: 5%;
+  padding-top: 5%;
 }
 
 .intro {
